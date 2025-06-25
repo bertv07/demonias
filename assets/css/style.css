@@ -1,0 +1,658 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap');
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Archivo Black', sans-serif;
+}
+
+body,
+html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.smoke {
+  display: block;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  padding: 1rem;
+  z-index: 11;
+  color: #fff;
+}
+.buy {
+  padding: 0.5rem 1rem;
+  background-color: #fff;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 18px;
+  margin-right: 2rem;
+  transition: all 0.3s ease;
+}
+.buy:hover {
+  background-color: #b1b1b1;
+  color: #fff;
+}
+.buy a {
+  text-decoration: none;
+  color: #000;
+  font-size: 1.2rem;
+}
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: -15%;
+  width: 100vw;
+  z-index: 10;
+}
+.text {
+  width: 50%;
+  color: #fff;
+  font-size: 5rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+}
+.demonia {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Estilo para el canvas de Three.js */
+.demonia canvas {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: right center;
+}
+
+.espacio,
+.espacio1,
+.espacio2 {
+  height: 100vh;
+  width: 100%;
+  background-color: #000;
+  position: relative;
+}
+.espacio {
+  margin-top: 100vh; /* Para que empiece después de la pantalla inicial */
+}
+.espacio1 {
+  z-index: 1;
+  margin-top: 200vh; /* Para que empiece después de la pantalla inicial */
+  background-color: #000;
+}
+
+
+.line-mark {
+  width: 50%;
+  height: 0.2rem;
+  background-color: #004e27dc;
+}
+.line-mark-1 {
+  width: 25%;
+}
+/* Contenedor del marcador */
+.mark-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Ocultar contenedores de información de los marcadores */
+.mark-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Panel de información lateral */
+.info-panel {
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50vw;
+  height: 50vh;
+  border-radius: 12px;
+  padding: 20px;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* Mostrar solo el panel de información al hacer hover en cualquier marcador */
+[class^="mark-"]:hover ~ .info-panel,
+.info-panel.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Asegurar que no se muestren otros contenedores de información */
+[class^="mark-"]:hover .mark-container {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.mark-container h2 {
+  font-size: 1rem;
+  margin: 0 0 8px 0;
+  color: #fff;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mark-container p {
+  font-size: 0.85rem;
+  color: #ddd;
+  line-height: 1.4;
+  margin: 0;
+  font-weight: normal;
+  opacity: 0.9;
+  font-weight: 300;
+}
+
+/* Estilos base de los marcadores */
+.marks {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Cuando la animación termine, activar los botones */
+.marks.visible {
+  opacity: 1;
+}
+
+/* Contenedor de cada marcador */
+[class^="mark-"] {
+  position: absolute;
+  pointer-events: auto;
+}
+
+/* Wrapper del marcador */
+.mark-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* Estilo del contenedor de información */
+.mark-container {
+  position: absolute;
+  width: 240px;
+  padding: 20px;
+  background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+  border-radius: 12px;
+  color: #f0f0f0;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateX(-50%) translateY(15px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  pointer-events: none;
+  z-index: 1000;
+  text-align: left;
+  left: 50%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transform-origin: top center;
+  overflow: hidden;
+}
+
+.mark-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #ff4d4d, #ff1a1a);
+}
+
+.mark-container h2 {
+  color: white;
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 8px;
+}
+
+.mark-container h2::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, #ff4d4d, #ff1a1a);
+  border-radius: 2px;
+}
+
+.mark-container p {
+  margin: 0;
+  line-height: 1.5;
+  color: #e0e0e0;
+  font-weight: 300;
+}
+
+/* Mostrar información al hacer hover en el wrapper */
+.mark-wrapper:hover .mark-container {
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+  pointer-events: auto;
+}
+
+/* Efecto de aparición */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(8px);
+  }
+}
+
+.mark-wrapper:hover .mark-container {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+/* Estilo del botón */
+.buttom-mark {
+  background: #ff4d4d;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.buttom-mark::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: 0.5s;
+}
+
+.buttom-mark:hover {
+  transform: scale(1.15) rotate(90deg);
+  box-shadow: 0 6px 20px rgba(255, 30, 30, 0.4), 0 0 0 3px rgba(255, 255, 255, 0.7);
+  background: linear-gradient(145deg, #ff3333, #cc0000);
+}
+
+.buttom-mark:hover::before {
+  left: 100%;
+}
+
+.buttom-mark span {
+  display: block;
+  width: 12px;
+  height: 2px;
+  background: white;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.buttom-mark span::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: white;
+  transform: rotate(90deg);
+  transition: all 0.3s ease;
+}
+
+.buttom-mark:hover span {
+  transform: rotate(45deg);
+}
+
+.buttom-mark:hover span::before {
+  transform: rotate(90deg);
+}
+
+/* Panel de información lateral */
+.info-panel {
+  position: fixed;
+  top: 10vh;
+  right: 0vw;
+  width: 50vw;
+  height: 40vh;
+  padding: 2rem;
+  color: white;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 50;
+  padding-right: 20rem;
+}
+
+.info-panel.active {
+  transform: translateX(0);
+}
+
+.info-content {
+  padding: 1rem;
+}
+
+.info-content h2 {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  color: #fff;
+  border-bottom: 2px solid #ff6b6b;
+  padding-bottom: 0.5rem;
+}
+
+.info-content p {
+  font-size: 2rem;
+  line-height: 1.6;
+  color: #ddd;
+}
+
+/* Estilos para los marcadores */
+/* Restauramos la posición original de los marcadores */
+.mark-1 {
+  position: absolute;
+  top: 9vh;
+  left: 35vw;
+  transform: translate(-50%, -50%);
+}
+
+.mark-2 {
+  position: absolute;
+  top: 30vh;
+  left: 38vw;
+  transform: translate(-50%, -50%);
+}
+
+.mark-3 {
+  position: absolute;
+  top: 45vh;
+  left: 28%;
+  transform: translate(-50%, 50%);
+}
+
+.mark-4 {
+  position: absolute;
+  top: 20vh;
+  right: 25%;
+  transform: translate(50%, -50%);
+}
+
+.mark-5 {
+  position: absolute;
+  top: 55vh;
+  left: 50vw;
+  transform: translate(50%, 50%);
+}
+
+.mark-6 {
+  position: absolute;
+  bottom: 0%;
+  left: 20vw;
+  top: 75vh;
+  transform: translate(-50%, 50%);
+}
+
+.mark-7 {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  pointer-events: auto;
+  opacity: 0;
+  display: none; /* Oculto inicialmente */
+  transition: opacity 0.5s ease;
+  width: auto;
+  height: auto;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+  padding: 10px;
+}
+
+/* Contenedores de marcadores */
+[class^="mark-"] {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 36px;
+  height: 36px;
+}
+
+[class^="mark-"]:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Asegurar que el contenedor del marcador tenga el tamaño correcto */
+.mark-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Asegurar altura suficiente para scroll */
+body {
+  height: 400vh; /* 4 veces la altura de la ventana */
+}
+
+/* Mejorar el contenedor del modelo */
+.demonia {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.demonia canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Asegurar que los espacios tengan altura */
+.espacio {
+  height: 100vh;
+  margin-top: 100vh;
+  background: transparent;
+}
+
+.espacio1 {
+  height: 100vh;
+  background: transparent;
+}
+
+.espacio2 {
+  height: 100vh;
+  background: transparent;
+}
+
+
+.galeria {
+    position: absolute;
+    top: 500vh;
+    left: 0;
+    width: 100%;
+    height: 200vh;
+    background: transparent;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.galeria::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 1;
+    pointer-events: none;
+    display: none; /* Ocultar completamente el fondo */
+}
+
+/* Estilo para el canvas de Three.js */
+.galeria-smoke {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    background: transparent !important;
+    mix-blend-mode: screen; /* Mezcla las partículas con el fondo */
+}
+
+.galeria-container {
+    position: relative;
+    width: 100%;
+    max-width: 90vw;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    margin-top: 100vh;
+}
+.galeria-container h2{
+  font-size: 4rem;
+  margin-bottom: 2rem;
+  color: #f0f0f0;
+}
+
+.galeria-item {
+    position: relative;
+    z-index: 3;
+    max-width: 70%;
+    max-height: 80%;
+}
+
+.galeria-item img {
+    max-width:20rem;
+    max-height: 80vh;
+    object-fit: cover;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+}
+
+/* Smoke container for gallery */
+.galeria-smoke {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+
+.galeria-item{
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+}
+
+.galeria-2{
+  grid-row:span 2 / span 2 ;
+}
+.g2{
+  margin-top: -5rem;
+}
+
+.galeria-3 {
+  grid-row:span 3 / span 3 ;
+  grid-column-start: 1;
+  grid-row-start: 2;
+}
+
+.galeria-4{
+  grid-row:span 2 / span 2 ;
+  grid-column-start: 3;
+  grid-row-start: 1;
+}
+
+.galeria-5{
+  margin-top: -9rem;
+  grid-column-start: 2;
+  grid-row-start: 3;
+  z-index: 100;
+}
+
+.galeria-6{
+  grid-row:span 2 / span 2 ;
+  grid-column-start: 3;
+  grid-row-start: 3;
+}
+
+.galeria-7{
+  grid-column-start: 2;
+  grid-row-start: 4;
+  /* //margin-top: -16rem; */
+}
