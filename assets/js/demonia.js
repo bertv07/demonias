@@ -1,49 +1,93 @@
 // Importaciones básicas
-import * as THREE from "three"
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger.js"
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger.js";
 
 // Registrar ScrollTrigger
-gsap.registerPlugin(ScrollTrigger)
+gsap.registerPlugin(ScrollTrigger);
 
 // Variables globales
-let model
-let scene, camera, renderer, container
+let model;
+let scene, camera, renderer, container;
+let isMobile = window.innerWidth <= 1024;
 
 // Elementos del DOM
-const marksContainer = document.querySelector(".marks")
+const marksContainer = document.querySelector(".marks");
 
 // Configurar Three.js
 function setupThreeJS() {
-  scene = new THREE.Scene()
-  scene.background = null
+  scene = new THREE.Scene();
+  scene.background = null;
 
-  container = document.querySelector(".demonia")
-  const width = container.clientWidth
-  const height = container.clientHeight
+  container = document.querySelector(".demonia");
+  
+  // Asegurar tamaño en móvil
+  if (isMobile) {
+    container.style.height = "50vh";
+    container.style.width = "100%";
+    container.style.position = "fixed";
+    container.style.top = "50%";
+    container.style.left = "50%";
+    container.style.transform = "translate(-50%, -50%)";
+    container.style.zIndex = "0";
+  }
 
-  camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000)
-  camera.position.set(1.3, 0, 1.7)
+  const width = container.clientWidth;
+  const height = container.clientHeight;
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
-  renderer.setSize(width, height)
-  container.appendChild(renderer.domElement)
+  camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  
+  // Posición de cámara diferente para móvil
+  if (isMobile) {
+    camera.position.set(0, 0, 2.5);
+  } else {
+    camera.position.set(1.3, 0, 1.7);
+  }
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-  scene.add(ambientLight)
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1)
-  directionalLight.position.set(1, 1, 1)
-  scene.add(directionalLight)
+  renderer = new THREE.WebGLRenderer({
+    antialias: !isMobile,
+    alpha: true,
+    powerPreference: isMobile ? "low-power" : "high-performance"
+  });
+  
+  // Optimizaciones para móvil
+  if (isMobile) {
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.domElement.style.position = "absolute";
+    renderer.domElement.style.top = "0";
+    renderer.domElement.style.left = "0";
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+  }
+  
+  renderer.setSize(width, height);
+  container.appendChild(renderer.domElement);
+
+  // Luces optimizadas
+  const ambientLight = new THREE.AmbientLight(0xffffff, isMobile ? 0.8 : 0.6);
+  scene.add(ambientLight);
+  
+  const directionalLight = new THREE.DirectionalLight(0xffffff, isMobile ? 0.8 : 1);
+  directionalLight.position.set(1, 1, 1);
+  scene.add(directionalLight);
 }
 
-// Crear timeline principal con ScrollTrigger
+// Timeline principal
 function createMainTimeline() {
-  if (!model) return
+  if (!model) return;
 
-  console.log("Creando timeline principal...")
+  // Posición inicial según dispositivo
+  if (isMobile) {
+    model.position.set(0, 0, 0);
+    model.rotation.set(0, 0, 0);
+    model.scale.set(0.8, 0.8, 0.8);
+  } else {
+    model.position.set(2, 0, 0);
+    model.rotation.set(0, 3.5, 0);
+    model.scale.set(1, 1, 1);
+  }
 
-  // Timeline principal para el modelo 3D
   const demoniaTimeline = gsap.timeline({
     scrollTrigger: {
       trigger: "body",
@@ -52,176 +96,75 @@ function createMainTimeline() {
       scrub: 1,
       pin: false,
       toggleActions: "play pause reverse reset",
-      //markers: true, // Descomenta para debug
     },
-  })
+  });
 
-  // Secuencia de animaciones
-  demoniaTimeline
-    // PASO 1: Entrada desde la derecha
-    .to(model.position, {
-      x: 1,
-      y: 0,
-      z: 0,
-      duration: 1,
-    })
-
-    // PASO 2: Movimiento hacia la izquierda + rotación
-    .to(
-      model.position,
-      {
-        x: 1,
-        duration: 20,
-      },
-      "-=50",
-    )
-    .to(
-      model.rotation,
-      {
-        y: 0,
-        z: 0,
-        duration: 20,
-      },
-      "+=-10",
-    )
-    .to(
-      model.scale,
-      {
-        x: 1.3,
-        y: 1.3,
-        z: 1.3,
-        duration: 20,
-      },
-      "+=-10",
-    )
-
-    // PASO 3: Continuar movimiento + más rotación
-    .to(
-      model.position,
-      {
-        x: 1.5,
-        y:  0,
-        z: 0,
-        duration: 20,
-      },
-      "+=10",
-    )
-    .to(
-      model.rotation,
-      {
-        y: 0,
-        x: 1.4,
-        duration: 50,
-      },
-      "-=20",
-    )
-
-    // PASO 4: Posición final
-    .to(
-      model.rotation,
-      {
-        y: 0,
-        x: 0,
-        duration: 50,
-      },
-      "-=10",
-    )
-    .to(
-      model.position,
-      {
-        x: 1,
-        y: 0,
-        z: 0,
-        duration: 50,
-      },
-      "-=50",
-    )
-
-    .to(
-      model.scale,
-      {
-        x: 1.2,
-        y: 1.2,
-        z: 1.2,
-        duration: 10,
-      },
-      "-=10",
-    )
-
-  console.log("Timeline creado correctamente")
+  // Animaciones adaptadas
+  if (isMobile) {
+    demoniaTimeline
+      .to(model.rotation, { y: Math.PI * 0.5, duration: 10 })
+      .to(model.rotation, { x: Math.PI * 0.25, duration: 10 }, "-=5")
+      .to(model.scale, { x: 1, y: 1, z: 1, duration: 10 }, "-=5")
+      .to(model.rotation, { y: Math.PI, x: 0, duration: 10 });
+  } else {
+    demoniaTimeline
+      .to(model.position, { x: 1, y: 0, z: 0, duration: 1 })
+      .to(model.position, { x: 1, duration: 20 }, "-=50")
+      .to(model.rotation, { y: 0, z: 0, duration: 20 }, "+=-10")
+      .to(model.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 20 }, "+=-10")
+      .to(model.position, { x: 1.5, y: 0, z: 0, duration: 20 }, "+=10")
+      .to(model.rotation, { y: 0, x: 1.4, duration: 50 }, "-=20")
+      .to(model.rotation, { y: 0, x: 0, duration: 50 }, "-=10")
+      .to(model.position, { x: 1, y: 0, z: 0, duration: 50 }, "-=50")
+      .to(model.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 10 }, "-=10");
+  }
 }
 
-// Control para marcadores principales
+// Control de marcadores
 function createMarkersControl() {
-  // ScrollTrigger para marcadores generales
   ScrollTrigger.create({
     trigger: "body",
     start: "-10% top",
     end: "10% top",
-    //markers: true, // Descomenta para debug
     onEnter: () => {
-      console.log("Mostrando marcadores (bajando)")
-      marksContainer.style.display = "block"
-      gsap.to(marksContainer, {
-        opacity: 1,
-        duration: 0.3,
-        ease: "power2.out",
-      })
+      marksContainer.style.display = "block";
+      gsap.to(marksContainer, { opacity: 1, duration: 0.3 });
     },
     onLeave: () => {
-      console.log("Ocultando marcadores (bajando)")
-      gsap.to(marksContainer, {
-        opacity: 0,
+      gsap.to(marksContainer, { 
+        opacity: 0, 
         duration: 0.3,
-        ease: "power2.in",
-        onComplete: () => {
-          marksContainer.style.display = "none"
-        },
-      })
+        onComplete: () => marksContainer.style.display = "none"
+      });
     },
     onEnterBack: () => {
-      console.log("Mostrando marcadores (subiendo)")
-      marksContainer.style.display = "block"
-      gsap.to(marksContainer, {
-        opacity: 1,
-        duration: 0.3,
-        ease: "power2.out",
-      })
+      marksContainer.style.display = "block";
+      gsap.to(marksContainer, { opacity: 1, duration: 0.3 });
     },
     onLeaveBack: () => {
-      console.log("Ocultando marcadores (subiendo)")
-      gsap.to(marksContainer, {
-        opacity: 0,
+      gsap.to(marksContainer, { 
+        opacity: 0, 
         duration: 0.3,
-        ease: "power2.in",
-        onComplete: () => {
-          marksContainer.style.display = "none"
-        },
-      })
+        onComplete: () => marksContainer.style.display = "none"
+      });
     },
-  })
+  });
 }
 
-// Control para el panel de información lateral
+// Panel de información
 function setupInfoPanel() {
   const infoPanel = document.querySelector('.info-panel');
   const infoContent = document.querySelector('.info-content');
   const markers = document.querySelectorAll('[class^="mark-"]');
   
-  // Mostrar información al hacer hover en un marcador
   markers.forEach(marker => {
-    // Encontrar el contenedor de información dentro del marcador
     const markerContainer = marker.querySelector('.mark-container');
-    
     if (markerContainer) {
-      const title = markerContainer.querySelector('h2')?.textContent || 'Título no disponible';
-      const content = markerContainer.querySelector('p')?.textContent || 'Descripción no disponible';
+      const title = markerContainer.querySelector('h2')?.textContent || '';
+      const content = markerContainer.querySelector('p')?.textContent || '';
       
       marker.addEventListener('mouseenter', () => {
-        infoContent.innerHTML = `
-          <h2>${title}</h2>
-          <p>${content}</p>
-        `;
+        infoContent.innerHTML = `<h2>${title}</h2><p>${content}</p>`;
         infoPanel.classList.add('active');
       });
 
@@ -232,69 +175,37 @@ function setupInfoPanel() {
   });
 }
 
-// Control específico para el marcador 7
+// Marcador 7
 function createMarker7Control() {
   const marker7 = document.querySelector('.mark-7');
-  if (!marker7) {
-    console.error('No se encontró el marcador 7');
-    return;
-  }
+  if (!marker7) return;
   
-  // Asegurarse de que el marcador 7 sea visible inicialmente
-  gsap.set(marker7, { 
-    opacity: 0,
-    display: 'none',
-    pointerEvents: 'auto',
-    zIndex: 1000
-  });
+  gsap.set(marker7, { opacity: 0, display: 'none' });
   
-  // Hacer el botón del marcador 7 más visible
-  const buttonMark7 = marker7.querySelector('.buttom-mark');
-  
-  // Controlar la aparición del marcador 7 con un rango de scroll
   ScrollTrigger.create({
     trigger: "body",
     start: "20% top",
     end: "30% top",
-    //markers: true,
     onEnter: () => {
-      console.log("Mostrando marcador 7 (bajando)");
       marker7.style.display = "block";
-      gsap.to(marker7, {
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out"
-      });
+      gsap.to(marker7, { opacity: 1, duration: 1 });
     },
     onLeave: () => {
-      console.log("Ocultando marcador 7 (bajando)");
-      gsap.to(marker7, {
-        opacity: 0,
+      gsap.to(marker7, { 
+        opacity: 0, 
         duration: 0.7,
-        ease: "power2.in",
-        onComplete: () => {
-          marker7.style.display = "none";
-        }
+        onComplete: () => marker7.style.display = "none"
       });
     },
     onEnterBack: () => {
-      console.log("Mostrando marcador 7 (subiendo)");
       marker7.style.display = "block";
-      gsap.to(marker7, {
-        opacity: 1,
-        duration: 1,
-        ease: "power2.out"
-      });
+      gsap.to(marker7, { opacity: 1, duration: 1 });
     },
     onLeaveBack: () => {
-      console.log("Ocultando marcador 7 (subiendo)");
-      gsap.to(marker7, {
-        opacity: 0,
+      gsap.to(marker7, { 
+        opacity: 0, 
         duration: 0.7,
-        ease: "power2.in",
-        onComplete: () => {
-          marker7.style.display = "none";
-        }
+        onComplete: () => marker7.style.display = "none"
       });
     }
   });
@@ -302,81 +213,98 @@ function createMarker7Control() {
 
 // Cargar modelo
 function loadModel() {
-  const loader = new GLTFLoader()
+  const loader = new GLTFLoader();
 
   loader.load(
     "./assets/model/demonia.glb",
     (gltf) => {
-      console.log("Modelo cargado exitosamente")
-      model = gltf.scene
+      model = gltf.scene;
+      
+      // Optimización para móvil
+      if (isMobile) {
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = false;
+          }
+        });
+      }
 
-      // Posición inicial (derecha)
-      model.position.set(2, 0, 0)
-      model.rotation.set(0, 3.5, 0)
-      model.scale.set(1, 1, 1)
+      scene.add(model);
 
-      scene.add(model)
-
-      // Crear animaciones
       setTimeout(() => {
-        createMainTimeline()
-        createMarkersControl()
-        createMarker7Control()
-        setupInfoPanel() // Inicializar el panel de información
-      }, 500)
+        createMainTimeline();
+        createMarkersControl();
+        createMarker7Control();
+        setupInfoPanel();
+      }, 500);
     },
     (progress) => {
-      const percent = Math.round((progress.loaded / progress.total) * 100)
-      console.log("Cargando: " + percent + "%")
+      console.log("Cargando: " + Math.round((progress.loaded / progress.total) * 100) + "%");
     },
     (error) => {
-      console.error("Error al cargar modelo:", error)
-    },
-  )
+      console.error("Error al cargar modelo:", error);
+    }
+  );
 }
 
-// Ocultar marcadores inicialmente
+// Inicializar marcadores
 function initMarkers() {
   if (marksContainer) {
-    marksContainer.style.opacity = "0"
-    marksContainer.style.display = "none"
+    marksContainer.style.opacity = "0";
+    marksContainer.style.display = "none";
   }
 }
 
-// Loop de animación
+// Animación
 function animate() {
-  requestAnimationFrame(animate)
+  requestAnimationFrame(animate);
   if (renderer && scene && camera) {
-    renderer.render(scene, camera)
+    renderer.render(scene, camera);
   }
 }
 
 // Resize
 function handleResize() {
+  const newIsMobile = window.innerWidth <= 1024;
+  
+  if (isMobile !== newIsMobile) {
+    location.reload();
+    return;
+  }
+
   if (container && camera && renderer) {
-    const newWidth = container.clientWidth
-    const newHeight = container.clientHeight
-    camera.aspect = newWidth / newHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(newWidth, newHeight)
+    const newWidth = container.clientWidth;
+    const newHeight = container.clientHeight;
+    camera.aspect = newWidth / newHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(newWidth, newHeight);
+    
+    if (isMobile) {
+      camera.position.z = 2.5 * (Math.min(newWidth, newHeight) / 500);
+    }
   }
 }
 
-// Inicializar
+// Inicialización
 function init() {
-  setupThreeJS()
-  initMarkers()
-  loadModel()
-  createMarkersControl()
-  createMarker7Control()
-  animate()
+  isMobile = window.innerWidth <= 1024;
+  
+  if (isMobile) {
+    THREE.Cache.enabled = true;
+  }
+  
+  setupThreeJS();
+  initMarkers();
+  loadModel();
+  animate();
 
-  window.addEventListener("resize", handleResize)
+  window.addEventListener("resize", handleResize);
 }
 
 // Iniciar
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init)
+  document.addEventListener("DOMContentLoaded", init);
 } else {
-  init()
+  init();
 }
