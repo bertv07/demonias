@@ -114,10 +114,18 @@ header {
   /* Ajustar modelo 3D para tablet */
   .demonia {
     height: 60vh;
-    width: 100%;
+    width: 100vw;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    overflow: hidden;
+  }
+  
+  .demonia canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    object-position: center center;
   }
   
   /* Ajustar texto principal */
@@ -152,10 +160,18 @@ header {
   /* Ajustar modelo 3D para móvil */
   .demonia {
     height: 50vh;
-    width: 100%;
+    width: 100vw;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+    overflow: hidden;
+  }
+  
+  .demonia canvas {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    object-position: center center;
   }
   
   /* Ajustar texto principal */

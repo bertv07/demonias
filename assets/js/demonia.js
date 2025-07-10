@@ -25,6 +25,19 @@ function getDeviceType() {
   return 'mobile';
 }
 
+// Función para centrar el modelo en dispositivos pequeños
+function centerModel() {
+  if (!model || deviceType === 'desktop') return;
+  
+  // Forzar posición centrada
+  model.position.set(0, 0, 0);
+  
+  // Ajustar la cámara para que mire al modelo
+  if (camera) {
+    camera.lookAt(0, 0, 0);
+  }
+}
+
 // Configurar Three.js
 function setupThreeJS() {
   scene = new THREE.Scene();
@@ -54,15 +67,22 @@ function setupThreeJS() {
   const width = container.clientWidth;
   const height = container.clientHeight;
 
-  camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  // Ajustar FOV según dispositivo para mejor encuadre
+  const fov = deviceType === 'desktop' ? 45 : deviceType === 'tablet' ? 50 : 55;
+  camera = new THREE.PerspectiveCamera(fov, width / height, 0.1, 1000);
   
-  // Posición de cámara según dispositivo
+  // Posición de cámara según dispositivo - más alejada para evitar recortes
   if (deviceType === 'desktop') {
     camera.position.set(1.3, 0, 1.7);
   } else if (deviceType === 'tablet') {
-    camera.position.set(0, 0, 2.2);
+    camera.position.set(0, 0, 3.0); // Más alejada
   } else { // mobile
-    camera.position.set(0, 0, 2.5);
+    camera.position.set(0, 0, 3.5); // Aún más alejada
+  }
+  
+  // Hacer que la cámara mire al centro en dispositivos pequeños
+  if (deviceType !== 'desktop') {
+    camera.lookAt(0, 0, 0);
   }
 
   // Configurar renderer
@@ -108,13 +128,13 @@ function createMainTimeline() {
     model.rotation.set(0, 3.5, 0);
     model.scale.set(1, 1, 1);
   } else if (deviceType === 'tablet') {
-    model.position.set(0, 0, 0);
+    model.position.set(0, 0, 0); // Siempre centrado
     model.rotation.set(0, 0, 0);
-    model.scale.set(0.9, 0.9, 0.9);
+    model.scale.set(1.2, 1.2, 1.2); // Más grande por estar más lejos
   } else { // mobile
-    model.position.set(0, 0, 0);
+    model.position.set(0, 0, 0); // Siempre centrado
     model.rotation.set(0, 0, 0);
-    model.scale.set(0.7, 0.7, 0.7);
+    model.scale.set(1.0, 1.0, 1.0); // Tamaño ajustado por estar más lejos
   }
 
   const demoniaTimeline = gsap.timeline({
@@ -142,19 +162,21 @@ function createMainTimeline() {
       .to(model.position, { x: 1, y: 0, z: 0, duration: 50 }, "-=50")
       .to(model.scale, { x: 1.2, y: 1.2, z: 1.2, duration: 10 }, "-=10");
   } else if (deviceType === 'tablet') {
-    // Animaciones suaves para tablet
+    // Animaciones suaves para tablet - solo rotaciones, posición fija en centro
     demoniaTimeline
-      .to(model.rotation, { y: Math.PI * 0.5, duration: 15 })
-      .to(model.rotation, { x: Math.PI * 0.2, duration: 15 }, "-=7")
-      .to(model.scale, { x: 1.1, y: 1.1, z: 1.1, duration: 15 }, "-=7")
-      .to(model.rotation, { y: Math.PI * 0.8, x: 0, duration: 15 });
+      .to(model.rotation, { y: Math.PI * 0.4, duration: 15 })
+      .to(model.rotation, { x: Math.PI * 0.15, duration: 15 }, "-=7")
+      .to(model.scale, { x: 1.3, y: 1.3, z: 1.3, duration: 15 }, "-=7")
+      .to(model.rotation, { y: Math.PI * 0.6, x: 0, duration: 15 })
+      .to(model.position, { x: 0, y: 0, z: 0, duration: 1 }); // Forzar centro
   } else { // mobile
-    // Animaciones simples para móvil
+    // Animaciones simples para móvil - solo rotaciones, posición fija en centro
     demoniaTimeline
-      .to(model.rotation, { y: Math.PI * 0.4, duration: 12 })
-      .to(model.rotation, { x: Math.PI * 0.15, duration: 12 }, "-=6")
-      .to(model.scale, { x: 0.9, y: 0.9, z: 0.9, duration: 12 }, "-=6")
-      .to(model.rotation, { y: Math.PI * 0.7, x: 0, duration: 12 });
+      .to(model.rotation, { y: Math.PI * 0.3, duration: 12 })
+      .to(model.rotation, { x: Math.PI * 0.1, duration: 12 }, "-=6")
+      .to(model.scale, { x: 1.1, y: 1.1, z: 1.1, duration: 12 }, "-=6")
+      .to(model.rotation, { y: Math.PI * 0.5, x: 0, duration: 12 })
+      .to(model.position, { x: 0, y: 0, z: 0, duration: 1 }); // Forzar centro
   }
 }
 
@@ -297,11 +319,21 @@ function loadModel() {
 
       scene.add(model);
 
+      // Centrar modelo inmediatamente en dispositivos pequeños
+      if (deviceType !== 'desktop') {
+        centerModel();
+      }
+
       setTimeout(() => {
         createMainTimeline();
         createMarkersControl();
         createMarker7Control();
         setupInfoPanel();
+        
+        // Asegurar centrado tras las animaciones iniciales
+        if (deviceType !== 'desktop') {
+          setTimeout(centerModel, 1000);
+        }
       }, 500);
     },
     (progress) => {
@@ -331,6 +363,19 @@ function initMarkers() {
 function animate() {
   requestAnimationFrame(animate);
   if (renderer && scene && camera) {
+    
+    // Monitorear posición del modelo en dispositivos pequeños
+    if (model && deviceType !== 'desktop') {
+      // Si el modelo se mueve demasiado del centro, corregir
+      const maxDistance = 0.5;
+      if (Math.abs(model.position.x) > maxDistance || 
+          Math.abs(model.position.y) > maxDistance) {
+        // Suavemente volver al centro
+        model.position.x = THREE.MathUtils.lerp(model.position.x, 0, 0.1);
+        model.position.y = THREE.MathUtils.lerp(model.position.y, 0, 0.1);
+      }
+    }
+    
     renderer.render(scene, camera);
   }
 }
@@ -351,11 +396,18 @@ function handleResize() {
     camera.updateProjectionMatrix();
     renderer.setSize(newWidth, newHeight);
     
-    // Ajustar cámara según dispositivo
+    // Ajustar cámara según dispositivo - mantener distancia adecuada
     if (deviceType === 'mobile') {
-      camera.position.z = 2.5 * (Math.min(newWidth, newHeight) / 500);
+      camera.position.z = Math.max(3.2, 3.5 * (Math.min(newWidth, newHeight) / 400));
+      camera.lookAt(0, 0, 0);
     } else if (deviceType === 'tablet') {
-      camera.position.z = 2.2 * (Math.min(newWidth, newHeight) / 600);
+      camera.position.z = Math.max(2.8, 3.0 * (Math.min(newWidth, newHeight) / 500));
+      camera.lookAt(0, 0, 0);
+    }
+    
+    // Asegurar que el modelo se mantenga centrado tras resize
+    if (model && deviceType !== 'desktop') {
+      model.position.set(0, 0, 0);
     }
   }
 }
