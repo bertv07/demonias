@@ -98,52 +98,120 @@ header {
   transition: all 0.3s ease;
 }
 
-/* Responsive styles for tablets */
-@media (max-width: 1024px) {
+/* ======== RESPONSIVE DESIGN ======== */
+
+/* Tablet styles (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  /* Ocultar completamente los marcadores */
+  .marks {
+    display: none !important;
+  }
+  
+  .info-panel {
+    display: none !important;
+  }
+  
+  /* Ajustar modelo 3D para tablet */
   .demonia {
     height: 60vh;
+    width: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .demonia canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(0, 0);
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: right center;
+    transition: all 0.3s ease;
+  }
+  /* Ajustar texto principal */
+  header {
+    left: 0;
+    justify-content: center;
   }
   
-  .mark-container {
-    margin-top: 65vh;
-    position: relative;
-    z-index: 3;
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 65vh 20px 0;
+  .text {
+    width: 80%;
+    font-size: 3.5rem;
+    text-align: center;
   }
   
-  .mark {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(5px);
+  /* Asegurar que los espacios sigan funcionando para scroll */
+  .espacio {
+    margin-top: 100vh;
   }
 }
 
-/* Responsive styles for mobile */
+/* Mobile styles (<768px) */
 @media (max-width: 768px) {
+  /* Ocultar completamente los marcadores */
+  .marks {
+    display: none !important;
+  }
+  
+  .info-panel {
+    display: none !important;
+  }
+  
+  /* Ajustar modelo 3D para móvil */
   .demonia {
     height: 50vh;
+    width: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .demonia canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(0, 0);
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    object-position: right center;
+    transition: all 0.3s ease;
   }
   
-  .mark-container {
-    margin-top: 55vh;
-    margin: 55vh 10px 0;
-    padding: 15px;
+  /* Ajustar texto principal */
+  header {
+    left: 0;
+    justify-content: center;
   }
   
-  .mark {
-    width: 40px;
-    height: 40px;
-    font-size: 14px;
+  .text {
+    width: 90%;
+    font-size: 2.8rem;
+    text-align: center;
   }
   
-  .mark-container h2 {
-    font-size: 1.5rem;
+  /* Ajustar navegación */
+  nav {
+    padding: 0.5rem;
   }
   
-  .mark-container p {
+  .buy a {
     font-size: 1rem;
+  }
+  
+  /* Galería responsive */
+  .galeria-container h2 {
+    font-size: 2.5rem;
+  }
+  
+  .galeria-item {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .galeria-item img {
+    max-width: 15rem;
   }
 }
 
@@ -706,170 +774,4 @@ body {
   grid-column-start: 2;
   grid-row-start: 4;
   /* //margin-top: -16rem; */
-}
-
-/* ======== MODO RESPONSIVO - TABLET Y MÓVIL ========= */
-
-@media (max-width: 1024px) {
-  .info-panel {
-    display: none !important;
-  }
-
-  .marks {
-    position: static;
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    padding: 2rem;
-    pointer-events: auto;
-    opacity: 1 !important;
-  }
-
-  [class^="mark-"] {
-    position: static !important;
-    transform: none !important;
-    width: 90%;
-    max-width: 500px;
-  }
-
-  .mark-wrapper {
-    flex-direction: column;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    border-radius: 10px;
-  }
-
-  .buttom-mark {
-    display: none !important;
-  }
-
-  .mark-container {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    position: static !important;
-    transform: none !important;
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 1rem;
-    width: 100%;
-    box-shadow: none;
-    text-align: left;
-  }
-
-  .mark-container h2 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  .mark-container p {
-    font-size: 1rem;
-    line-height: 1.5;
-  }
-}
-
-@media (max-width: 768px) {
-  .galeria-container h2 {
-    font-size: 2rem;
-  }
-
-  .galeria-item {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
-
-  .galeria-item img {
-    max-width: 100%;
-  }
-}
-
-
-
-
-
-
-/* Modifica estas clases existentes */
-.demonia {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 2;
-  pointer-events: none;
-}
-
-/* Media queries específicas para móvil */
-@media (max-width: 1024px) {
-  .demonia {
-    height: 50vh;
-    top: 20%;
-    transform: translateY(-50%);
-  }
-  
-  body {
-    overflow-x: hidden;
-  }
-  
-  header {
-    left: 0;
-    justify-content: flex-start;
-    padding-left: 2rem;
-  }
-  
-  .text {
-    width: 80%;
-    font-size: 3rem;
-  }
-  
-  .marks {
-    position: relative;
-    margin-top: 60vh;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    padding: 2rem;
-  }
-  
-  [class^="mark-"] {
-    position: static !important;
-    transform: none !important;
-    margin: 0 !important;
-    width: 100% !important;
-  }
-  
-  .mark-wrapper {
-    background: rgba(0,0,0,0.7);
-    padding: 1rem;
-    border-radius: 10px;
-  }
-  
-  .buttom-mark {
-    display: none;
-  }
-  
-  .mark-container {
-    display: block !important;
-    opacity: 1 !important;
-    position: relative !important;
-    transform: none !important;
-    width: 100% !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-}
-
-@media (max-width: 768px) {
-  .text {
-    font-size: 2.5rem;
-  }
-  
-  .demonia {
-    height: 40vh;
-  }
 }
